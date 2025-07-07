@@ -1,0 +1,38 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testMatch": [
+    "<rootDir>/src/**/*.spec.ts"
+  ],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1"
+  },
+  "transform": {
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    ]
+  },
+  "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "main.ts",
+    "index.ts",
+    ".*\\.module\\.ts$",
+    ".*\\.dto\\.ts$",
+    ".*\\.entity\\.ts$",
+    ".*\\.mapper\\.ts$",
+    ".*\\.guard\\.ts$",
+    ".*\\.strategy\\.ts$",
+    ".*\\.request\\.ts$",
+    ".*\\.response\\.ts$",
+    ".*\\.exception\\.ts$",
+    ".*\\.e2e-spec\\.ts$"
+  ]
+}
