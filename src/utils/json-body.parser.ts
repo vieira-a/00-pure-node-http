@@ -1,6 +1,7 @@
 import { IncomingMessage } from 'http';
+import { BadRequestException } from '../exceptions';
 
-export function jsonBodyParser(req: IncomingMessage): Promise<unknown> {
+export function jsonBodyParser(req: IncomingMessage & { body?: unknown }): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let body = '';
 
@@ -13,8 +14,7 @@ export function jsonBodyParser(req: IncomingMessage): Promise<unknown> {
         const json: unknown = JSON.parse(body);
         resolve(json);
       } catch (error: unknown) {
-        console.error(error);
-        reject(new Error('JSON inválido'));
+        reject(new BadRequestException('Invalid param', { params: ['body'] }));
       }
     });
 

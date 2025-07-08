@@ -1,7 +1,9 @@
-import { HttpStatus } from '../enums';
+import { HttpStatus, HttpCode } from '../enums';
 
-export type HttpException = {
+export type HttpExceptionType = {
   statusCode: HttpStatus;
   message: string;
+  code: HttpCode;
   details?: unknown;
+  resource?: string;
 };
