@@ -10,6 +10,12 @@ describe('CustomerService', () => {
     release: jest.fn(),
   };
 
+  const mockCustomer = {
+    id: '16248f7b-1f30-4db3-957b-256f9b4ab6de',
+    name: 'John Doe',
+    email: 'john@example.com',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (postgresPool.connect as jest.Mock).mockResolvedValue(mockClient);
@@ -17,12 +23,6 @@ describe('CustomerService', () => {
   });
 
   it('should create a customer with valid params', async () => {
-    const mockCustomer = {
-      id: '16248f7b-1f30-4db3-957b-256f9b4ab6de',
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-
     mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
 
     const input: CreateCustomerDTO = {
@@ -36,6 +36,20 @@ describe('CustomerService', () => {
       'INSERT INTO customers (id, name, email) VALUES ($1, $2, $3) RETURNING *',
       expect.arrayContaining(['16248f7b-1f30-4db3-957b-256f9b4ab6de', input.name, input.email]),
     );
+    expect(result).toEqual(mockCustomer);
+    expect(mockClient.release).toHaveBeenCalled();
+  });
+
+  it('should return customer name and email if customer exists', async () => {
+    mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
+
+    const result = await CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de');
+
+    expect(mockClient.query).toHaveBeenCalledWith(
+      'SELECT name, email FROM customers WHERE id = $1',
+      ['16248f7b-1f30-4db3-957b-256f9b4ab6de'],
+    );
+
     expect(result).toEqual(mockCustomer);
     expect(mockClient.release).toHaveBeenCalled();
   });
