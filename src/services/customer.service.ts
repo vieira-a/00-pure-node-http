@@ -1,6 +1,5 @@
 import { CreateCustomerDTO } from '../models/schemas/customer.schema';
 import { postgresPool } from '../database/postgres.pool';
-import { QueryResult } from 'pg';
 
 export interface Customer {
   id: string;

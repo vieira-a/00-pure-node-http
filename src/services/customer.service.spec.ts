@@ -16,6 +16,11 @@ describe('CustomerService', () => {
     email: 'john@example.com',
   };
 
+  const mockInputCustomer: CreateCustomerDTO = {
+    name: 'John Doe',
+    email: 'john@example.com',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (postgresPool.connect as jest.Mock).mockResolvedValue(mockClient);
@@ -25,16 +30,15 @@ describe('CustomerService', () => {
   it('should create a customer with valid params', async () => {
     mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
 
-    const input: CreateCustomerDTO = {
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-
-    const result = await CustomerService.createCustomer(input);
+    const result = await CustomerService.createCustomer(mockInputCustomer);
 
     expect(mockClient.query).toHaveBeenCalledWith(
       'INSERT INTO customers (id, name, email) VALUES ($1, $2, $3) RETURNING *',
-      expect.arrayContaining(['16248f7b-1f30-4db3-957b-256f9b4ab6de', input.name, input.email]),
+      expect.arrayContaining([
+        '16248f7b-1f30-4db3-957b-256f9b4ab6de',
+        mockInputCustomer.name,
+        mockInputCustomer.email,
+      ]),
     );
     expect(result).toEqual(mockCustomer);
     expect(mockClient.release).toHaveBeenCalled();
@@ -65,6 +69,17 @@ describe('CustomerService', () => {
     );
 
     expect(result).toEqual(null);
+    expect(mockClient.release).toHaveBeenCalled();
+  });
+
+  it('should throw and release connection if CustomerService.createCustomer query fails', async () => {
+    mockClient.query.mockRejectedValue(new Error('Database error.'));
+
+    await expect(CustomerService.createCustomer(mockInputCustomer)).rejects.toThrow(
+      'Failed to create customer',
+    );
+
+    expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();
   });
 });
