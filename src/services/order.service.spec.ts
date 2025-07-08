@@ -1,5 +1,6 @@
 import { CustomerService, OrderService } from './';
 import { postgresPool } from '../database/postgres.pool';
+import { NotFoundException } from '../exceptions';
 
 jest.mock('./customer.service');
 jest.mock('../database/postgres.pool');
@@ -48,15 +49,18 @@ describe('OrderService', () => {
   it('should throw if customer is not found', async () => {
     (CustomerService.getCustomerById as jest.Mock).mockResolvedValue(null);
 
-    await expect(OrderService.createOrder(mockInputOrder)).rejects.toThrow('Customer not found');
+    await expect(OrderService.createOrder(mockInputOrder)).rejects.toMatchObject({
+      statusCode: 404,
+      message: 'Customer not found',
+    });
   });
 
   it('should throw and release connection if OrderService.createOrder query fails', async () => {
     mockClient.query.mockRejectedValue(new Error('Database error.'));
 
-    await expect(OrderService.createOrder(mockInputOrder)).rejects.toThrow(
-      'Failed to create order',
-    );
+    await expect(OrderService.createOrder(mockInputOrder)).rejects.toMatchObject({
+      statusCode: 500,
+    });
 
     expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();
