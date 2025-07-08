@@ -1,4 +1,5 @@
 import { CreateOrderDTO } from '../models/schemas/order.schema';
+import { CustomerService } from './customer.service';
 import { postgresPool } from '../database/postgres.pool';
 
 export interface Order {
@@ -12,6 +13,11 @@ export interface Order {
 export class OrderService {
   static async createOrder(data: CreateOrderDTO): Promise<Order> {
     const { customerId, product, amount, price, total } = data;
+
+    const customer = await CustomerService.getCustomerById(customerId);
+
+    if (!customer) throw new Error('Customer not found');
+
     const id = crypto.randomUUID();
 
     const client = await postgresPool.connect();
