@@ -53,4 +53,18 @@ describe('CustomerService', () => {
     expect(result).toEqual(mockCustomer);
     expect(mockClient.release).toHaveBeenCalled();
   });
+
+  it('should return null if customer not exists', async () => {
+    mockClient.query.mockResolvedValue({ rows: [] });
+
+    const result = await CustomerService.getCustomerById('non-existent-id');
+
+    expect(mockClient.query).toHaveBeenCalledWith(
+      'SELECT id, name, email FROM customers WHERE id = $1',
+      ['non-existent-id'],
+    );
+
+    expect(result).toEqual(null);
+    expect(mockClient.release).toHaveBeenCalled();
+  });
 });
