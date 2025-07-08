@@ -14,6 +14,7 @@ export function jsonBodyParser(req: IncomingMessage & { body?: unknown }): Promi
         const json: unknown = JSON.parse(body);
         resolve(json);
       } catch (error: unknown) {
+        console.log(error);
         reject(new BadRequestException('Invalid param', { params: ['body'] }));
       }
     });

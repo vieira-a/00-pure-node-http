@@ -29,7 +29,7 @@ export class CustomerService {
     }
   }
 
-  static async getCustomerById(customerId: string): Promise<Customer> {
+  static async getCustomerById(customerId: string): Promise<Customer | null> {
     const client = await postgresPool.connect();
 
     try {
@@ -37,7 +37,7 @@ export class CustomerService {
         customerId,
       ]);
 
-      return result.rows[0] || null;
+      return (result.rows[0] as Customer) || null;
     } catch (error) {
       console.error('Error creating customer:', error);
       throw new Error('Failed to get customer by id');
