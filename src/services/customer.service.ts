@@ -1,5 +1,6 @@
 import { CreateCustomerDTO } from '../models/schemas/customer.schema';
 import { postgresPool } from '../database/postgres.pool';
+import { QueryResult } from 'pg';
 
 export interface Customer {
   id: string;
@@ -24,6 +25,23 @@ export class CustomerService {
     } catch (error) {
       console.error('Error creating customer:', error);
       throw new Error('Failed to create customer');
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getCustomerById(customerId: string): Promise<Customer> {
+    const client = await postgresPool.connect();
+
+    try {
+      const result = await client.query('SELECT id, name, email FROM customers WHERE id = $1', [
+        customerId,
+      ]);
+
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw new Error('Failed to get customer by id');
     } finally {
       client.release();
     }

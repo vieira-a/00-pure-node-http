@@ -40,13 +40,13 @@ describe('CustomerService', () => {
     expect(mockClient.release).toHaveBeenCalled();
   });
 
-  it('should return customer name and email if customer exists', async () => {
+  it('should return customer data if customer exists', async () => {
     mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
 
     const result = await CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de');
 
     expect(mockClient.query).toHaveBeenCalledWith(
-      'SELECT name, email FROM customers WHERE id = $1',
+      'SELECT id, name, email FROM customers WHERE id = $1',
       ['16248f7b-1f30-4db3-957b-256f9b4ab6de'],
     );
 
