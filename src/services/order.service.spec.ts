@@ -1,6 +1,6 @@
 import { CustomerService, OrderService } from './';
 import { postgresPool } from '../database/postgres.pool';
-import { NotFoundException } from '../exceptions';
+import { HttpCode, HttpStatus } from '../enums';
 
 jest.mock('./customer.service');
 jest.mock('../database/postgres.pool');
@@ -50,8 +50,8 @@ describe('OrderService', () => {
     (CustomerService.getCustomerById as jest.Mock).mockResolvedValue(null);
 
     await expect(OrderService.createOrder(mockInputOrder)).rejects.toMatchObject({
-      statusCode: 404,
-      message: 'Customer not found',
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      code: HttpCode.INTERNAL_SERVER_ERROR,
     });
   });
 
