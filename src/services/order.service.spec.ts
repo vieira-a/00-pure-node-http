@@ -50,4 +50,15 @@ describe('OrderService', () => {
 
     await expect(OrderService.createOrder(mockInputOrder)).rejects.toThrow('Customer not found');
   });
+
+  it('should throw and release connection if OrderService.createOrder query fails', async () => {
+    mockClient.query.mockRejectedValue(new Error('Database error.'));
+
+    await expect(OrderService.createOrder(mockInputOrder)).rejects.toThrow(
+      'Failed to create order',
+    );
+
+    expect(mockClient.query).toHaveBeenCalled();
+    expect(mockClient.release).toHaveBeenCalled();
+  });
 });
