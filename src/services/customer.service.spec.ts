@@ -1,6 +1,7 @@
 import { postgresPool } from '../database/postgres.pool';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDTO } from '../models/schemas/customer.schema';
+import { HttpCode, HttpStatus } from '../enums';
 
 jest.mock('../database/postgres.pool');
 
@@ -75,9 +76,10 @@ describe('CustomerService', () => {
   it('should throw and release connection if CustomerService.createCustomer query fails', async () => {
     mockClient.query.mockRejectedValue(new Error('Database error.'));
 
-    await expect(CustomerService.createCustomer(mockInputCustomer)).rejects.toThrow(
-      'Failed to create customer',
-    );
+    await expect(CustomerService.createCustomer(mockInputCustomer)).rejects.toMatchObject({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      code: HttpCode.INTERNAL_SERVER_ERROR,
+    });
 
     expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();
@@ -88,7 +90,10 @@ describe('CustomerService', () => {
 
     await expect(
       CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de'),
-    ).rejects.toThrow('Failed to get customer by id');
+    ).rejects.toMatchObject({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      code: HttpCode.INTERNAL_SERVER_ERROR,
+    });
 
     expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();

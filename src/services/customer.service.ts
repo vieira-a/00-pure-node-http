@@ -1,5 +1,6 @@
 import { CreateCustomerDTO } from '../models/schemas/customer.schema';
 import { postgresPool } from '../database/postgres.pool';
+import { InternalServerErrorException } from '../exceptions';
 
 export interface Customer {
   id: string;
@@ -10,11 +11,10 @@ export interface Customer {
 export class CustomerService {
   static async createCustomer(data: CreateCustomerDTO): Promise<Customer> {
     const { name, email } = data;
-    const id = crypto.randomUUID();
-
     const client = await postgresPool.connect();
 
     try {
+      const id = crypto.randomUUID();
       const result = await client.query(
         'INSERT INTO customers (id, name, email) VALUES ($1, $2, $3) RETURNING *',
         [id, name, email],
@@ -22,8 +22,7 @@ export class CustomerService {
 
       return result.rows[0] as Customer;
     } catch (error) {
-      console.error('Error creating customer:', error);
-      throw new Error('Failed to create customer');
+      throw new InternalServerErrorException(error);
     } finally {
       client.release();
     }
@@ -39,8 +38,7 @@ export class CustomerService {
 
       return (result.rows[0] as Customer) || null;
     } catch (error) {
-      console.error('Error creating customer:', error);
-      throw new Error('Failed to get customer by id');
+      throw new InternalServerErrorException(error);
     } finally {
       client.release();
     }
