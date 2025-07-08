@@ -82,4 +82,15 @@ describe('CustomerService', () => {
     expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();
   });
+
+  it('should throw and release connection if CustomerService.getCustomerById query fails', async () => {
+    mockClient.query.mockRejectedValue(new Error('Database error.'));
+
+    await expect(
+      CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de'),
+    ).rejects.toThrow('Failed to get customer by id');
+
+    expect(mockClient.query).toHaveBeenCalled();
+    expect(mockClient.release).toHaveBeenCalled();
+  });
 });
