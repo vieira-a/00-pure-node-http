@@ -9,7 +9,7 @@ export interface Customer {
 }
 
 export class CustomerService {
-  static async createCustomer(data: CreateCustomerDTO): Promise<Customer> {
+  async createCustomer(data: CreateCustomerDTO): Promise<Customer> {
     const { name, email } = data;
     const client = await postgresPool.connect();
 
@@ -28,7 +28,7 @@ export class CustomerService {
     }
   }
 
-  static async getCustomerById(customerId: string): Promise<Customer | null> {
+  async getCustomerById(customerId: string): Promise<Customer | null> {
     const client = await postgresPool.connect();
 
     try {

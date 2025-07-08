@@ -22,24 +22,24 @@ describe('CustomerService', () => {
     email: 'john@example.com',
   };
 
+  let customerService: CustomerService;
+
   beforeEach(() => {
     jest.clearAllMocks();
     (postgresPool.connect as jest.Mock).mockResolvedValue(mockClient);
     jest.spyOn(crypto, 'randomUUID').mockReturnValue('16248f7b-1f30-4db3-957b-256f9b4ab6de');
+
+    customerService = new CustomerService();
   });
 
   it('should create a customer with valid params', async () => {
     mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
 
-    const result = await CustomerService.createCustomer(mockInputCustomer);
+    const result = await customerService.createCustomer(mockInputCustomer);
 
     expect(mockClient.query).toHaveBeenCalledWith(
       'INSERT INTO customers (id, name, email) VALUES ($1, $2, $3) RETURNING *',
-      expect.arrayContaining([
-        '16248f7b-1f30-4db3-957b-256f9b4ab6de',
-        mockInputCustomer.name,
-        mockInputCustomer.email,
-      ]),
+      [mockCustomer.id, mockInputCustomer.name, mockInputCustomer.email],
     );
     expect(result).toEqual(mockCustomer);
     expect(mockClient.release).toHaveBeenCalled();
@@ -48,35 +48,33 @@ describe('CustomerService', () => {
   it('should return customer data if customer exists', async () => {
     mockClient.query.mockResolvedValue({ rows: [mockCustomer] });
 
-    const result = await CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de');
+    const result = await customerService.getCustomerById(mockCustomer.id);
 
     expect(mockClient.query).toHaveBeenCalledWith(
       'SELECT id, name, email FROM customers WHERE id = $1',
-      ['16248f7b-1f30-4db3-957b-256f9b4ab6de'],
+      [mockCustomer.id],
     );
-
     expect(result).toEqual(mockCustomer);
     expect(mockClient.release).toHaveBeenCalled();
   });
 
-  it('should return null if customer not exists', async () => {
+  it('should return null if customer does not exist', async () => {
     mockClient.query.mockResolvedValue({ rows: [] });
 
-    const result = await CustomerService.getCustomerById('non-existent-id');
+    const result = await customerService.getCustomerById('non-existent-id');
 
     expect(mockClient.query).toHaveBeenCalledWith(
       'SELECT id, name, email FROM customers WHERE id = $1',
       ['non-existent-id'],
     );
-
-    expect(result).toEqual(null);
+    expect(result).toBeNull();
     expect(mockClient.release).toHaveBeenCalled();
   });
 
-  it('should throw and release connection if CustomerService.createCustomer query fails', async () => {
+  it('should throw InternalServerErrorException if createCustomer query fails', async () => {
     mockClient.query.mockRejectedValue(new Error('Database error.'));
 
-    await expect(CustomerService.createCustomer(mockInputCustomer)).rejects.toMatchObject({
+    await expect(customerService.createCustomer(mockInputCustomer)).rejects.toMatchObject({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: HttpCode.INTERNAL_SERVER_ERROR,
     });
@@ -85,12 +83,10 @@ describe('CustomerService', () => {
     expect(mockClient.release).toHaveBeenCalled();
   });
 
-  it('should throw and release connection if CustomerService.getCustomerById query fails', async () => {
+  it('should throw InternalServerErrorException if getCustomerById query fails', async () => {
     mockClient.query.mockRejectedValue(new Error('Database error.'));
 
-    await expect(
-      CustomerService.getCustomerById('16248f7b-1f30-4db3-957b-256f9b4ab6de'),
-    ).rejects.toMatchObject({
+    await expect(customerService.getCustomerById(mockCustomer.id)).rejects.toMatchObject({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: HttpCode.INTERNAL_SERVER_ERROR,
     });

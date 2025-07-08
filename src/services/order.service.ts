@@ -1,7 +1,7 @@
 import { CreateOrderDTO } from '../models/schemas/order.schema';
 import { CustomerService } from './customer.service';
 import { postgresPool } from '../database/postgres.pool';
-import { InternalServerErrorException, NotFoundException } from '../exceptions';
+import { HttpException, InternalServerErrorException, NotFoundException } from '../exceptions';
 
 export interface Order {
   id: string;
@@ -12,12 +12,14 @@ export interface Order {
   total: number;
 }
 export class OrderService {
-  static async createOrder(data: CreateOrderDTO): Promise<Order> {
+  constructor(private customerService: CustomerService) {}
+
+  async createOrder(data: CreateOrderDTO): Promise<Order> {
     const { customerId, product, amount, price, total } = data;
 
     const client = await postgresPool.connect();
     try {
-      const customer = await CustomerService.getCustomerById(customerId);
+      const customer = await this.customerService.getCustomerById(data.customerId);
       if (!customer) throw new NotFoundException('Customer not found');
 
       const id = crypto.randomUUID();
@@ -28,6 +30,9 @@ export class OrderService {
       );
       return result.rows[0] as Order;
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error);
     } finally {
       client.release();

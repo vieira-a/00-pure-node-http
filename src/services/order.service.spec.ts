@@ -1,15 +1,13 @@
-import { CustomerService, OrderService } from './';
+import { OrderService } from './order.service';
 import { postgresPool } from '../database/postgres.pool';
 import { HttpCode, HttpStatus } from '../enums';
 
-jest.mock('./customer.service');
 jest.mock('../database/postgres.pool');
 
 describe('OrderService', () => {
-  const mockClient = {
-    query: jest.fn(),
-    release: jest.fn(),
-  };
+  let mockClient: any;
+  let mockCustomerService: any;
+  let orderService: OrderService;
 
   const mockOrder = {
     id: 'f4c83536-1b1a-473a-9d66-4fe93858b72a',
@@ -30,39 +28,64 @@ describe('OrderService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockClient = {
+      query: jest.fn(),
+      release: jest.fn(),
+    };
+
     (postgresPool.connect as jest.Mock).mockResolvedValue(mockClient);
-    (CustomerService.getCustomerById as jest.Mock).mockResolvedValue({
-      id: mockInputOrder.customerId,
-    });
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('f4c83536-1b1a-473a-9d66-4fe93858b72a');
+
+    mockCustomerService = {
+      getCustomerById: jest.fn().mockResolvedValue({ id: mockInputOrder.customerId }),
+    };
+
+    orderService = new OrderService(mockCustomerService);
+
+    jest.spyOn(global.crypto, 'randomUUID').mockReturnValue('f4c83536-1b1a-473a-9d66-4fe93858b72a');
   });
 
-  it('should create a order with valid params', async () => {
+  it('should create an order with valid params', async () => {
     mockClient.query.mockResolvedValueOnce({ rows: [mockOrder] });
 
-    const result = await OrderService.createOrder(mockInputOrder);
+    const result = await orderService.createOrder(mockInputOrder);
 
-    expect(mockClient.query).toHaveBeenCalled();
+    expect(mockClient.query).toHaveBeenCalledWith(
+      'INSERT INTO orders (id, customer_id, product, amount, price, total) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [
+        mockOrder.id,
+        mockInputOrder.customerId,
+        mockInputOrder.product,
+        mockInputOrder.amount,
+        mockInputOrder.price,
+        mockInputOrder.total,
+      ],
+    );
+
     expect(result).toEqual(mockOrder);
+    expect(mockClient.release).toHaveBeenCalled();
   });
 
-  it('should throw if customer is not found', async () => {
-    (CustomerService.getCustomerById as jest.Mock).mockResolvedValue(null);
+  it('should throw NotFoundException if customer is not found', async () => {
+    mockCustomerService.getCustomerById.mockResolvedValue(null);
 
-    await expect(OrderService.createOrder(mockInputOrder)).rejects.toMatchObject({
+    await expect(orderService.createOrder(mockInputOrder)).rejects.toMatchObject({
+      statusCode: HttpStatus.NOT_FOUND,
+      code: HttpCode.NOT_FOUND,
+      message: 'Customer not found',
+    });
+
+    expect(mockClient.release).toHaveBeenCalled();
+  });
+
+  it('should throw and release connection if query fails', async () => {
+    mockClient.query.mockRejectedValue(new Error('Database error.'));
+
+    await expect(orderService.createOrder(mockInputOrder)).rejects.toMatchObject({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: HttpCode.INTERNAL_SERVER_ERROR,
     });
-  });
 
-  it('should throw and release connection if OrderService.createOrder query fails', async () => {
-    mockClient.query.mockRejectedValue(new Error('Database error.'));
-
-    await expect(OrderService.createOrder(mockInputOrder)).rejects.toMatchObject({
-      statusCode: 500,
-    });
-
-    expect(mockClient.query).toHaveBeenCalled();
     expect(mockClient.release).toHaveBeenCalled();
   });
 });
