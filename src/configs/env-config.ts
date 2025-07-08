@@ -11,7 +11,7 @@ const envSchema = z.object({
     .refine((val) => val.startsWith('postgres://'), {
       message: 'DATABASE_PG_URL must start with "postgres://"',
     }),
-  NODE_ENV: z.enum(['development', 'production']),
+  NODE_ENV: z.enum(['development', 'production', 'test']),
   API_VERSION: z.string(),
 });
 
