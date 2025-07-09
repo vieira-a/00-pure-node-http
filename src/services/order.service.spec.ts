@@ -1,12 +1,18 @@
 import { OrderService } from './order.service';
 import { postgresPool } from '../database/postgres.pool';
 import { HttpCode, HttpStatus } from '../enums';
+import { PoolClient } from 'pg';
+import { CustomerService } from './customer.service';
 
 jest.mock('../database/postgres.pool');
 
+export type MockType<T> = {
+  [P in keyof T]: jest.Mock;
+};
+
 describe('OrderService', () => {
-  let mockClient: any;
-  let mockCustomerService: any;
+  let mockClient: Partial<PoolClient>;
+  let mockCustomerService: MockType<CustomerService>;
   let orderService: OrderService;
 
   const mockOrder = {
@@ -38,6 +44,7 @@ describe('OrderService', () => {
 
     mockCustomerService = {
       getCustomerById: jest.fn().mockResolvedValue({ id: mockInputOrder.customerId }),
+      createCustomer: jest.fn(),
     };
 
     orderService = new OrderService(mockCustomerService);
@@ -46,7 +53,7 @@ describe('OrderService', () => {
   });
 
   it('should create an order with valid params', async () => {
-    mockClient.query.mockResolvedValueOnce({ rows: [mockOrder] });
+    (mockClient.query as jest.Mock).mockResolvedValueOnce({ rows: [mockOrder] });
 
     const result = await orderService.createOrder(mockInputOrder);
 
@@ -79,7 +86,7 @@ describe('OrderService', () => {
   });
 
   it('should throw and release connection if query fails', async () => {
-    mockClient.query.mockRejectedValue(new Error('Database error.'));
+    (mockClient.query as jest.Mock).mockRejectedValue(new Error('Database error.'));
 
     await expect(orderService.createOrder(mockInputOrder)).rejects.toMatchObject({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
