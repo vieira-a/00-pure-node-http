@@ -1,20 +1,24 @@
 import { IncomingMessage, ServerResponse } from 'http';
 
 import { bodyParserMiddleware } from './middlewares';
-import { mainRouter } from './routes';
+import { mainRouter } from './routes/index.router';
 import { httpExceptionMiddleware } from './middlewares';
 import { HttpException, InternalServerErrorException } from './exceptions';
+import { Container } from './dependency-injection/container';
 
 type IncomingRequest = IncomingMessage & { body?: unknown };
 
+const container = new Container();
+const routeHandler = mainRouter(container);
+
 async function routerHandlerAsync(req: IncomingRequest, res: ServerResponse) {
   await bodyParserMiddleware(req);
-  mainRouter(req, res);
+  await routeHandler(req, res);
 }
 
 export function routerHandler(req: IncomingRequest, res: ServerResponse) {
   routerHandlerAsync(req, res).catch((error: unknown) => {
-    const resource = `${req.method} ${req.url}`;
+    const resource = req.url;
 
     if (error instanceof HttpException) {
       if (!error.resource) {

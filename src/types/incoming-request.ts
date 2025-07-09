@@ -1,3 +1,3 @@
 import { IncomingMessage } from 'http';
 
-export type IncomingRequest = IncomingMessage & { body?: unknown };
+export type IncomingRequest<T = unknown> = IncomingMessage & { body?: T };
