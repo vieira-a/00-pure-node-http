@@ -22,7 +22,7 @@ export class CustomerService {
 
       return result.rows[0] as Customer;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(error as Error);
     } finally {
       client.release();
     }
@@ -38,7 +38,7 @@ export class CustomerService {
 
       return (result.rows[0] as Customer) || null;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(error as Error);
     } finally {
       client.release();
     }

@@ -33,7 +33,7 @@ export class OrderService {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(error as Error);
     } finally {
       client.release();
     }
