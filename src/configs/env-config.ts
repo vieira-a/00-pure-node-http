@@ -12,7 +12,7 @@ const envSchema = z.object({
       message: 'DATABASE_PG_URL must start with "postgres://"',
     }),
   NODE_ENV: z.enum(['development', 'production', 'test']),
-  API_VERSION: z.string(),
+  API_PREFIX: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -26,5 +26,5 @@ export const envConfig = {
   PORT: Number(parsedEnv.data.PORT),
   DATABASE_PG_URL: String(parsedEnv.data.DATABASE_PG_URL),
   NODE_ENV: String(parsedEnv.data.NODE_ENV),
-  API_VERSION: String(parsedEnv.data.API_VERSION),
+  API_PREFIX: String(parsedEnv.data.API_PREFIX),
 };
