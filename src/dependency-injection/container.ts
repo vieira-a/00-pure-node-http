@@ -1,5 +1,6 @@
 import { DomainException } from '../exceptions';
 import { CustomerController } from '../controllers/customer.controller';
+import { HealthController } from '../controllers/health.controller';
 import { CustomerService } from '../services';
 
 export class Container {
@@ -7,7 +8,7 @@ export class Container {
 
   constructor() {
     const customerService = new CustomerService();
-
+    this.service.set('HealthController', new HealthController());
     this.service.set('CustomerController', new CustomerController(customerService));
   }
 
