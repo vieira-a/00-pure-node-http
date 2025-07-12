@@ -4,18 +4,18 @@ config();
 import { z } from 'zod';
 
 const appEnvSchema = z.object({
+  API_SERVER: z.string(),
   PORT: z.string().regex(/^\d+$/, 'PORT must be a valid number.'),
   NODE_ENV: z.enum(['development', 'production', 'test']),
   API_PREFIX: z.string(),
 });
 
 const dbEnvSchema = z.object({
-  DATABASE_PG_URL: z
-    .string()
-    .url()
-    .refine((val) => val.startsWith('postgres://'), {
-      message: 'DATABASE_PG_URL must start with "postgres://"',
-    }),
+  POSTGRES_SERVER: z.string(),
+  POSTGRES_USER: z.string(),
+  POSTGRES_PASSWORD: z.string(),
+  POSTGRES_DB: z.string(),
+  POSTGRES_PORT: z.string().regex(/^\d+$/, 'PORT must be a valid number.'),
 });
 
 const parsedAppEnv = appEnvSchema.safeParse(process.env);
@@ -32,13 +32,18 @@ if (!parsedDbEnv.success) {
 }
 
 const appEnv = {
-  PORT: Number(parsedAppEnv.data.PORT),
-  NODE_ENV: parsedAppEnv.data.NODE_ENV,
-  API_PREFIX: parsedAppEnv.data.API_PREFIX,
+  server: parsedAppEnv.data.API_SERVER,
+  port: Number(parsedAppEnv.data.PORT),
+  env: parsedAppEnv.data.NODE_ENV,
+  prefix: parsedAppEnv.data.API_PREFIX,
 };
 
 const dbEnv = {
-  DATABASE_PG_URL: parsedDbEnv.data.DATABASE_PG_URL,
+  server: parsedDbEnv.data.POSTGRES_SERVER,
+  user: parsedDbEnv.data.POSTGRES_USER,
+  password: parsedDbEnv.data.POSTGRES_PASSWORD,
+  name: parsedDbEnv.data.POSTGRES_DB,
+  port: parsedDbEnv.data.POSTGRES_PORT,
 };
 
 export const envConfig = {
