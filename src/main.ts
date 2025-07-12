@@ -2,7 +2,7 @@ import { createServer } from 'http';
 import { envConfig } from './configs/env-config';
 import { routerHandler } from './router-handler';
 
-const port = envConfig.PORT;
+const port = envConfig.application.PORT;
 
 const server = createServer(routerHandler);
 

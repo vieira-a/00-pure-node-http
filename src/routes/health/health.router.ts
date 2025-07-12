@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { HttpMethod } from '../../enums';
 import { envConfig } from '../../configs/env-config';
 
-const API_PREFIX = envConfig.API_PREFIX;
+const API_PREFIX = envConfig.application.API_PREFIX;
 
 export function healthRouter(controller: HealthController) {
   return (req: IncomingMessage, res: ServerResponse): boolean => {

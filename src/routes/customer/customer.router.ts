@@ -6,7 +6,7 @@ import { CUSTOMER_ROUTES } from './customer.routes';
 import { envConfig } from '../../configs/env-config';
 import { CreateCustomerDTO } from '../../models/schemas/customer.schema';
 
-const API_PREFIX = envConfig.API_PREFIX;
+const API_PREFIX = envConfig.application.API_PREFIX;
 
 export function customerRouter(controller: CustomerController) {
   return async (req: IncomingRequest, res: ServerResponse): Promise<boolean> => {

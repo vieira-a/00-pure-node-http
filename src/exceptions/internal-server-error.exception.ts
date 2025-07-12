@@ -11,7 +11,7 @@ export class InternalServerErrorException extends HttpException {
       error
         ? {
             message: error.message,
-            stack: envConfig.NODE_ENV === 'development' ? error.stack : undefined,
+            stack: envConfig.application.NODE_ENV === 'development' ? error.stack : undefined,
             name: error.name,
           }
         : undefined,
