@@ -1,4 +1,4 @@
-import { CreateCustomerDTO } from '../models/schemas/customer.schema';
+import { CreateCustomerDTO, CustomerModel } from '../models/schemas/customer.schema';
 import { postgresPool } from '../database/postgres.pool';
 import { InternalServerErrorException } from '../exceptions';
 
@@ -9,7 +9,7 @@ export interface Customer {
 }
 
 export class CustomerService {
-  async createCustomer(data: CreateCustomerDTO): Promise<Customer> {
+  async createCustomer(data: CreateCustomerDTO): Promise<CustomerModel> {
     const { name, email } = data;
     const client = await postgresPool.connect();
 
@@ -20,7 +20,7 @@ export class CustomerService {
         [id, name, email],
       );
 
-      return result.rows[0] as Customer;
+      return result.rows[0] as CustomerModel;
     } catch (error) {
       throw new InternalServerErrorException(error as Error);
     } finally {
@@ -28,7 +28,7 @@ export class CustomerService {
     }
   }
 
-  async getCustomerById(customerId: string): Promise<Customer | null> {
+  async getCustomerById(customerId: string): Promise<CustomerModel | null> {
     const client = await postgresPool.connect();
 
     try {
@@ -36,7 +36,7 @@ export class CustomerService {
         customerId,
       ]);
 
-      return (result.rows[0] as Customer) || null;
+      return (result.rows[0] as CustomerModel) || null;
     } catch (error) {
       throw new InternalServerErrorException(error as Error);
     } finally {
